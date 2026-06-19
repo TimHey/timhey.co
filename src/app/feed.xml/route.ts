@@ -1,7 +1,8 @@
 import { getAllPosts } from "@/lib/posts";
 import { SITE, absolute } from "@/lib/site";
 
-export const dynamic = "force-static";
+// Refresh hourly so newly-due posts join the feed on their date.
+export const revalidate = 3600;
 
 function esc(s: string): string {
   return s

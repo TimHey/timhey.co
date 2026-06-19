@@ -7,12 +7,13 @@ export const SITE = {
   description:
     "Field notes from inside a real agentic GTM function. Agent discovery, Agent Experience, and the shift from selling to humans to selling to machines.",
   author: "Tim Hey",
-  role: "Sr. Director, Agentic GTM at Zapier",
+  role: "Sr. Director of Product, Agent Discovery",
   url: SITE_URL,
   // Used for the Person JSON-LD. Add real profile URLs as they go live.
   sameAs: [
-    "https://www.linkedin.com/in/timhey",
-    "https://x.com/timhey",
+    "https://www.linkedin.com/in/timothyhey",
+    "https://x.com/_TimHey",
+    "https://github.com/TimHey",
   ],
 };
 

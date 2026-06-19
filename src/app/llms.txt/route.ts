@@ -1,7 +1,8 @@
 import { getAllPosts } from "@/lib/posts";
 import { SITE, absolute } from "@/lib/site";
 
-export const dynamic = "force-static";
+// Refresh hourly so newly-due posts join the map on their date.
+export const revalidate = 3600;
 
 // llms.txt: a map of this site for agents. Every post links to its raw .md mirror.
 export function GET() {
@@ -12,7 +13,7 @@ export function GET() {
   lines.push("");
   lines.push(`> ${SITE.description}`);
   lines.push("");
-  lines.push(`${SITE.author}, ${SITE.role}.`);
+  lines.push(`${SITE.author}, ${SITE.role} at Zapier.`);
   lines.push("");
   lines.push("## Writing");
   lines.push("");
@@ -22,9 +23,9 @@ export function GET() {
     );
   }
   lines.push("");
-  lines.push("## About");
+  lines.push("## More");
   lines.push("");
-  lines.push(`- [About](${absolute("/about")}): who I am and what I write about.`);
+  lines.push(`- [Resume](${absolute("/resume")}): career history, roles, and competencies.`);
   lines.push("");
 
   return new Response(lines.join("\n"), {

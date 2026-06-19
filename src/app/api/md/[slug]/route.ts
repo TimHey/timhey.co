@@ -4,7 +4,10 @@ export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
 }
 
-export const dynamicParams = false;
+// Generate future-dated mirrors on demand once due, and refresh hourly so the
+// markdown mirror goes live on the same date as its post.
+export const dynamicParams = true;
+export const revalidate = 3600;
 
 // Raw markdown mirror, reached via the /posts/<slug>.md rewrite.
 export async function GET(

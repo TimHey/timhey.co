@@ -34,7 +34,20 @@ function readSlug(slug: string): Post | null {
   };
 }
 
-export function getAllSlugs(): string[] {
+// A post is published once its date is on or before today (UTC). Future-dated
+// posts stay hidden until their date, which is how the series stages itself.
+// SHOW_DRAFTS=1 reveals the whole queue, for local preview.
+const SHOW_ALL = process.env.SHOW_DRAFTS === "1";
+
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function isPublished(date: string): boolean {
+  return SHOW_ALL || (date !== "" && date <= todayISO());
+}
+
+function listSlugFiles(): string[] {
   if (!fs.existsSync(POSTS_DIR)) return [];
   return fs
     .readdirSync(POSTS_DIR)
@@ -42,13 +55,19 @@ export function getAllSlugs(): string[] {
     .map((f) => f.replace(/\.md$/, ""));
 }
 
+export function getAllSlugs(): string[] {
+  return getAllPosts().map((p) => p.slug);
+}
+
 export function getPost(slug: string): Post | null {
-  return readSlug(slug);
+  const post = readSlug(slug);
+  if (!post || !isPublished(post.date)) return null;
+  return post;
 }
 
 export function getAllPosts(): Post[] {
-  return getAllSlugs()
+  return listSlugFiles()
     .map(readSlug)
-    .filter((p): p is Post => p !== null)
+    .filter((p): p is Post => p !== null && isPublished(p.date))
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 }

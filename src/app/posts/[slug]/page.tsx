@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllSlugs, getPost } from "@/lib/posts";
 import { SITE, absolute } from "@/lib/site";
+import { graph, jsonLd, BLOG_ID, PERSON_ID } from "@/lib/schema";
+
+// Rebuild hourly so a post goes live on its date without a manual deploy.
+// Future-dated slugs are not pre-rendered; they generate on demand once due.
+export const revalidate = 3600;
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
@@ -53,37 +58,30 @@ export default async function PostPage({
   const post = getPost(slug);
   if (!post) notFound();
 
-  const articleJsonLd = {
-    "@context": "https://schema.org",
+  const url = absolute(`/posts/${slug}`);
+  const articleNode = {
     "@type": "BlogPosting",
+    "@id": `${url}#article`,
     headline: post.title,
     description: post.description,
     datePublished: post.date,
     dateModified: post.date,
-    url: absolute(`/posts/${slug}`),
+    url,
+    inLanguage: "en-US",
     keywords: post.tags.join(", "),
-    author: {
-      "@type": "Person",
-      name: SITE.author,
-      url: SITE.url,
-    },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": absolute(`/posts/${slug}`),
-    },
+    articleSection: post.tags[0],
+    isPartOf: { "@id": BLOG_ID },
+    author: { "@id": PERSON_ID },
+    publisher: { "@id": PERSON_ID },
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };
 
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
+  const breadcrumbNode = {
     "@type": "BreadcrumbList",
+    "@id": `${url}#breadcrumb`,
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Writing", item: SITE.url },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: post.title,
-        item: absolute(`/posts/${slug}`),
-      },
+      { "@type": "ListItem", position: 2, name: post.title, item: url },
     ],
   };
 
@@ -91,11 +89,7 @@ export default async function PostPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(graph(articleNode, breadcrumbNode)) }}
       />
       <article>
         <h1>{post.title}</h1>
