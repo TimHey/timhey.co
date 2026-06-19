@@ -13,13 +13,17 @@ That second group is where people over-invest. A blog has nothing for an agent t
 
 The rule: serve a capability file only if the capability exists and you want an agent to use it without a human.
 
-Here is the short version of what is out there, each with someone already doing it.
+Here is the short version of what is out there, who already serves it, and who needs it. The "in the wild" column is the useful part: every one of these is something you can go look at right now.
 
-- **OpenAPI spec and API catalog.** A machine-readable contract for your API. [Stripe](https://github.com/stripe/openapi) publishes a full one. Serve it if you have an API you want agents to call.
-- **OAuth discovery.** Lets an agent find your login flow and authenticate. Google serves it; every identity provider does. Serve it if anything you expose needs sign-in.
-- **MCP server card.** Declares an MCP server so a client can connect. Cloudflare's isitagentready.com serves one. Serve it if you run an MCP server, which most businesses do not.
-- **Agent card and skills index.** For when you operate an agent other agents should call, or publish skills they can load. Emerging, and niche.
-- **Commerce protocols.** Let an agent buy. The [Agentic Commerce Protocol](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol) (OpenAI and Stripe) powers ChatGPT checkout; Coinbase's x402 settles agent payments. Serve them if you sell something an agent should buy.
+| Capability file | What an agent does with it | In the wild | Who needs it |
+|---|---|---|---|
+| OpenAPI spec + API catalog | calls your API without guessing | [Stripe](https://github.com/stripe/openapi), [GitHub](https://github.com/github/rest-api-description) | anything with a public API |
+| OAuth discovery | signs in on a user's behalf | [Google](https://accounts.google.com/.well-known/openid-configuration), Microsoft | anything behind a login |
+| MCP server card | connects to your MCP server | [isitagentready.com](https://isitagentready.com) (Cloudflare), Zapier | businesses running an MCP server |
+| Agent card / skills index | gets discovered and called by other agents | still emerging | businesses operating an agent |
+| Commerce protocols (ACP, x402) | buys from you | [ChatGPT + Stripe](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol), Coinbase | stores and marketplaces |
+
+The pattern in that table: the further down you go, the fewer businesses it applies to. Almost everyone could use an API spec; almost no one needs an agent card yet.
 
 Now place yourself.
 
