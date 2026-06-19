@@ -1,6 +1,6 @@
 ---
 title: "The package registry is the agent's search index"
-date: "2026-07-09"
+date: "2026-07-16"
 description: "An agent looks for a tool by querying a registry, not Google. No package under a name it can predict, no candidate. The decision is made before your content gets a vote."
 tags: ["agent discovery", "packages", "SDK"]
 ---

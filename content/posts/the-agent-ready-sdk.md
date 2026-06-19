@@ -1,6 +1,6 @@
 ---
 title: "An SDK an agent can find, install, and run"
-date: "2026-07-16"
+date: "2026-07-23"
 description: "An SDK is found as a package and judged by its docs. Distribution and docs are one chain, and the agent quits at the first broken link."
 tags: ["agent discovery", "SDK", "packages"]
 ---

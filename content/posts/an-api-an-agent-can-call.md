@@ -1,6 +1,6 @@
 ---
 title: "An agent cannot call an API it has to guess"
-date: "2026-07-23"
+date: "2026-07-30"
 description: "Give an agent a machine-readable contract or it guesses, gets 400s, and falls back to a rival with a clean spec. The spec is your API's README."
 tags: ["agent discovery", "API", "OpenAPI"]
 ---

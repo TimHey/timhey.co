@@ -1,6 +1,6 @@
 ---
 title: "The eval that tells you if agents actually pick you"
-date: "2026-08-06"
+date: "2026-08-13"
 description: "You can ship every artifact and still lose. The only way to know if agents choose you is to ask them, repeatedly, and score it."
 tags: ["agent discovery", "evals", "agentic GTM"]
 ---

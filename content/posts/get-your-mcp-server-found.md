@@ -1,6 +1,6 @@
 ---
 title: "One registry will not get your MCP server found"
-date: "2026-07-30"
+date: "2026-08-06"
 description: "Agents find MCP servers two ways: in the registries their client reads, and on the open web mid-task. Most servers do the first and miss the second."
 tags: ["agent discovery", "MCP", "AX"]
 ---
