@@ -1,7 +1,7 @@
 ---
 title: "Most businesses don't need most of the agent files"
 date: "2026-07-09"
-description: "The list of files agents look for is long, and most of it is not for you. A capability file is only worth serving if you have the capability behind it. How to tell."
+description: "The list of files agents look for is long, and most of it is not for you. A capability file is only worth serving if you have the capability behind it. How to tell, and what they look like."
 tags: ["agent discovery", "agent-readable", "AX"]
 ---
 
@@ -13,22 +13,38 @@ That second group is where people over-invest. A blog has nothing for an agent t
 
 The rule: serve a capability file only if the capability exists and you want an agent to use it without a human.
 
-Here is the short version of what is out there, who already serves it, and who needs it. The "in the wild" column is the useful part: every one of these is something you can go look at right now.
+Here is what each one is, where it lives, and who needs it.
 
-| Capability file | What an agent does with it | In the wild | Who needs it |
+| Capability file | Where it lives | What it is | Who needs it |
 |---|---|---|---|
-| OpenAPI spec + API catalog | calls your API without guessing | [Stripe](https://github.com/stripe/openapi), [GitHub](https://github.com/github/rest-api-description) | anything with a public API |
-| OAuth discovery | signs in on a user's behalf | [Google](https://accounts.google.com/.well-known/openid-configuration), Microsoft | anything behind a login |
-| MCP server card | connects to your MCP server | [isitagentready.com](https://isitagentready.com) (Cloudflare), Zapier | businesses running an MCP server |
-| Agent card / skills index | gets discovered and called by other agents | still emerging | businesses operating an agent |
-| Commerce protocols (ACP, x402) | buys from you | [ChatGPT + Stripe](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol), Coinbase | stores and marketplaces |
+| OpenAPI spec | `/openapi.json`, often linked from `/.well-known/api-catalog` | a JSON or YAML file listing every endpoint, its inputs, and its responses | anything with a public API |
+| OAuth discovery | `/.well-known/openid-configuration` | a small JSON doc pointing to your sign-in and token URLs | anything behind a login |
+| MCP server card | `/.well-known/mcp/server-card.json` | a JSON file naming your MCP server, where to reach it, and the tools it exposes | a business running an MCP server |
+| Agent card | `/.well-known/agent-card.json` | JSON describing an agent's identity and what it can be asked to do | a business operating an agent |
+| Commerce protocols | your checkout API, or an HTTP `402` reply | structured checkout and payment messages, not a static file | stores and marketplaces |
 
-The pattern in that table: the further down you go, the fewer businesses it applies to. Almost everyone could use an API spec; almost no one needs an agent card yet.
+The pattern: the further down you go, the fewer businesses it applies to. Almost everyone could publish an API spec; almost no one needs an agent card yet.
 
-Now place yourself.
+## What one actually looks like
+
+They are smaller than they sound. Here is a real MCP server card, the one Cloudflare's agent-readiness scanner serves at `isitagentready.com/.well-known/mcp.json`:
+
+```json
+{
+  "serverInfo": { "name": "Agent Readiness Scanner", "version": "1.0.0" },
+  "description": "Scan any website URL to check its AI agent readiness level.",
+  "url": "https://isitagentready.com/mcp",
+  "transport": { "type": "streamable-http" },
+  "capabilities": { "tools": true }
+}
+```
+
+That is the whole file: a few lines at a predictable URL that say "here is my server and what it does." The rest are the same idea in different shapes. An OpenAPI spec is a much bigger version of it for an API. OAuth discovery is a short list of URLs pointing at your login. None of them is mysterious once you have seen one.
+
+## Place yourself
 
 - **Content site or blog:** none. Content surfaces only.
-- **Developer tool:** OpenAPI, a catalog, OAuth. Think Stripe.
+- **Developer tool:** an OpenAPI spec and OAuth discovery. Think Stripe or GitHub.
 - **Store:** commerce protocols and auth.
 - **A hybrid like Zapier:** a content site, a developer platform, and an agent-native product at once, so it has reason to serve almost the whole set.
 
