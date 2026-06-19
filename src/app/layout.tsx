@@ -48,7 +48,7 @@ function Social({ inNav = false }: { inNav?: boolean }) {
         </svg>
       </a>
       <a
-        href={SITE.sameAs[2]}
+        href={SITE.repo}
         aria-label="GitHub"
         title="GitHub"
         target="_blank"

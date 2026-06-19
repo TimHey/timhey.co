@@ -9,7 +9,11 @@ export const SITE = {
   author: "Tim Hey",
   role: "Sr. Director of Product, Agent Discovery",
   url: SITE_URL,
-  // Used for the Person JSON-LD. Add real profile URLs as they go live.
+  // The source for this site. The GitHub icon links here; the site is its own
+  // reference implementation, so the proof is one click from the header.
+  repo: "https://github.com/TimHey/timhey.co",
+  // Used for the Person JSON-LD. These identify the same person, so the GitHub
+  // entry stays the profile (a repo is not "sameAs" the person).
   sameAs: [
     "https://www.linkedin.com/in/timothyhey",
     "https://x.com/_TimHey",
