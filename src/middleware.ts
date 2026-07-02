@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server";
+import { record } from "@/lib/agent-log";
 
 // This site's subject is agent-readable content, so it measures its own agent
 // readers. Middleware runs before the CDN cache, which is the only place that
@@ -50,15 +51,14 @@ function identify(ua: string): string | null {
   return null;
 }
 
-export function middleware(req: NextRequest) {
+export function middleware(req: NextRequest, event: NextFetchEvent) {
   const ua = req.headers.get("user-agent") ?? "";
   const path = req.nextUrl.pathname;
   const agent = identify(ua);
   const surface = isAgentSurface(path);
 
   if (agent || surface) {
-    // One structured line, greppable in Vercel logs. A store or drain can
-    // aggregate these later; nothing here blocks or slows the request.
+    // One structured line, greppable in Vercel logs even without a store.
     console.log(
       JSON.stringify({
         t: "agent-hit",
@@ -68,6 +68,9 @@ export function middleware(req: NextRequest) {
         ua: ua.slice(0, 200),
       }),
     );
+    // Durable counters, if a store is configured. waitUntil keeps the write off
+    // the response path — the visitor (agent) never waits on it.
+    event.waitUntil(record({ agent: agent ?? "unknown", surface, path }));
   }
 
   return NextResponse.next();
