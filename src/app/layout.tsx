@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { SITE, SITE_URL, absolute } from "@/lib/site";
+import { Analytics } from "./analytics";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -20,6 +21,12 @@ export const metadata: Metadata = {
     url: SITE_URL,
   },
   twitter: { card: "summary_large_image", creator: "@_TimHey" },
+  // Search Console ownership. The token is public (it verifies, it doesn't
+  // authorize), read from the environment so it's set once in Vercel. Omitted
+  // from the output entirely when unset.
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 function Social({ inNav = false }: { inNav?: boolean }) {
@@ -99,6 +106,7 @@ export default function RootLayout({
             <Social />
           </footer>
         </div>
+        <Analytics />
       </body>
     </html>
   );
