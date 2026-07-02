@@ -85,6 +85,7 @@ export default function RootLayout({
             </Link>
             <nav>
               <Link href="/">Writing</Link>
+              <Link href="/agents">Agents</Link>
               <Link href="/resume">Resume</Link>
               <Social inNav />
             </nav>

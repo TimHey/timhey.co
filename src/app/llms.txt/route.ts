@@ -26,6 +26,7 @@ export function GET() {
   lines.push("## More");
   lines.push("");
   lines.push(`- [Resume](${absolute("/resume")}): career history, roles, and competencies.`);
+  lines.push(`- [What agents read](${absolute("/agents")}): a human-readable index of every machine-readable file this site serves.`);
   lines.push(`- [ai-catalog.json](${absolute("/.well-known/ai-catalog.json")}): ARD capability catalog for this site.`);
   lines.push("");
 
