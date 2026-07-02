@@ -66,8 +66,9 @@ const DAY_TTL = 60 * 60 * 24 * 120; // keep per-day hashes ~120 days
 
 export async function record(hit: Hit): Promise<void> {
   if (!storeConfigured()) return;
-  const day = utcDay(new Date());
-  const entry = JSON.stringify({ ...hit, day });
+  const now = new Date();
+  const day = utcDay(now);
+  const entry = JSON.stringify({ ...hit, day, ts: now.toISOString() });
   await pipeline([
     ["HINCRBY", "agents:totals", hit.agent, 1],
     ["HINCRBY", `agents:day:${day}`, hit.agent, 1],
@@ -84,10 +85,12 @@ export interface DayStat {
   agents: Record<string, number>;
 }
 
+export type RecentHit = Hit & { day: string; ts?: string };
+
 export interface Stats {
   totals: Record<string, number>;
   paths: Record<string, number>;
-  recent: (Hit & { day: string })[];
+  recent: RecentHit[];
   byDay: DayStat[];
 }
 
@@ -114,12 +117,12 @@ export async function readStats(days = 14): Promise<Stats | null> {
   const recent = (Array.isArray(res[2]) ? (res[2] as string[]) : [])
     .map((s) => {
       try {
-        return JSON.parse(s) as Hit & { day: string };
+        return JSON.parse(s) as RecentHit;
       } catch {
         return null;
       }
     })
-    .filter((x): x is Hit & { day: string } => x !== null);
+    .filter((x): x is RecentHit => x !== null);
   const byDay: DayStat[] = dayKeys.map((day, i) => {
     const agents = hashToCounts(res[3 + i]);
     const total = Object.values(agents).reduce((a, b) => a + b, 0);

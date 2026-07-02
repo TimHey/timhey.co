@@ -115,6 +115,36 @@ article hr { border: 0; border-top: 1px solid var(--rule); margin: 36px 0; }
 .manifest dd { color: var(--muted); }
 .manifest .m { color: var(--muted); }
 
+.crawlers { margin-top: 56px; border-top: 1px solid var(--rule); padding-top: 8px; }
+.crawlers .stat { font-size: 15px; color: var(--muted); margin: 0 0 22px; }
+.crawlers .stat b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.crawlers-empty { color: var(--muted); font-size: 15px; }
+.crawlers-raw { font-size: 13px; color: var(--muted); margin-top: 24px; }
+
+.bars { list-style: none; padding: 0; margin: 0 0 32px; display: grid; gap: 9px; }
+.bars li {
+  display: grid;
+  grid-template-columns: 150px 1fr max-content;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+.bars .who { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .track { background: var(--soft); border: 1px solid var(--rule); border-radius: 3px; height: 11px; overflow: hidden; }
+.bars .fill { display: block; background: var(--accent); height: 100%; min-width: 2px; }
+.bars .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.spark { display: flex; align-items: flex-end; gap: 3px; height: 48px; margin: 0; }
+.spark .col { flex: 1; background: var(--soft); border-radius: 2px 2px 0 0; position: relative; min-height: 1px; }
+.spark .col > span { position: absolute; left: 0; right: 0; bottom: 0; background: var(--accent); border-radius: 2px 2px 0 0; min-height: 1px; }
+.spark-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+
+.feed { list-style: none; padding: 0; margin: 0; font: 13px/1.9 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.feed li { display: grid; grid-template-columns: max-content 1fr max-content; gap: 14px; }
+.feed .fa { color: var(--ink); white-space: nowrap; }
+.feed .fp { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.feed .ft { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
 .resume-contact { color: var(--muted); font-size: 15px; margin: -20px 0 8px; }
 
 .resume ul { margin: 0 0 18px; padding-left: 20px; }
