@@ -44,6 +44,10 @@ export default async function AgentsPage() {
     : [];
   const totalHits = totals.reduce((sum, [, n]) => sum + n, 0);
   const maxAgent = totals[0]?.[1] ?? 0;
+  const paths = stats
+    ? Object.entries(stats.paths).sort((a, b) => b[1] - a[1]).slice(0, 8)
+    : [];
+  const maxPath = paths[0]?.[1] ?? 0;
   const byDay = stats ? [...stats.byDay].reverse() : []; // oldest -> newest
   const maxDay = Math.max(1, ...byDay.map((d) => d.total));
   const recent = stats?.recent.slice(0, 12) ?? [];
@@ -106,6 +110,7 @@ export default async function AgentsPage() {
               {totals.length === 1 ? "agent" : "agents"}.
             </p>
 
+            <h3>By agent</h3>
             <ul className="bars">
               {totals.map(([agent, n]) => (
                 <li key={agent}>
@@ -121,6 +126,27 @@ export default async function AgentsPage() {
               ))}
             </ul>
 
+            {paths.length > 0 && (
+              <>
+                <h3>Most requested paths</h3>
+                <ul className="bars mono">
+                  {paths.map(([path, n]) => (
+                    <li key={path}>
+                      <span className="who" title={path}>{path}</span>
+                      <span className="track">
+                        <span
+                          className="fill"
+                          style={{ width: `${maxPath ? (n / maxPath) * 100 : 0}%` }}
+                        />
+                      </span>
+                      <span className="n">{n.toLocaleString()}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            <h3>Volume</h3>
             <div className="spark" aria-hidden="true">
               {byDay.map((d) => (
                 <span key={d.day} className="col" title={`${shortDate(d.day)}: ${d.total}`}>
