@@ -6,7 +6,7 @@ import { useState } from "react";
 // is captured server-side by middleware into a first-party cookie; this form just posts the email,
 // and /api/subscribe reads that cookie to attribute the signup. See src/middleware.ts.
 
-type State = "idle" | "loading" | "check" | "dupe" | "error";
+type State = "idle" | "loading" | "check" | "held" | "dupe" | "error";
 
 export function Subscribe({
   caption = "Get new posts by email.",
@@ -36,8 +36,13 @@ export function Subscribe({
         setState("error");
         return;
       }
-      const data = (await res.json().catch(() => ({}))) as { duplicate?: boolean };
-      setState(data.duplicate ? "dupe" : "check");
+      const data = (await res.json().catch(() => ({}))) as {
+        duplicate?: boolean;
+        warning?: string;
+      };
+      // Don't promise an email that can't be sent yet. The address is recorded either way, and
+      // scripts/invite-pending.ts mails these once sending is switched on.
+      setState(data.duplicate ? "dupe" : data.warning ? "held" : "check");
     } catch {
       setState("error");
     }
@@ -47,6 +52,14 @@ export function Subscribe({
     return (
       <p className="subscribe-done">
         Check your email &mdash; one click to confirm and you&apos;re on.
+      </p>
+    );
+  }
+  if (state === "held") {
+    return (
+      <p className="subscribe-done">
+        Got your address. Email isn&apos;t switched on here yet &mdash; you&apos;ll get a
+        confirmation link the moment it is.
       </p>
     );
   }

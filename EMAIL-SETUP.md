@@ -93,6 +93,16 @@ Optional:
 - [ ] Click unsubscribe in a post email later and confirm `/unsubscribed`
 - [ ] Send yourself a test through Resend and run it through
       [mail-tester.com](https://www.mail-tester.com) — wants 9/10 or better
+- [ ] Mail confirmation links to anyone who signed up before sending worked:
+
+```
+node --experimental-strip-types scripts/invite-pending.ts          # dry run
+node --experimental-strip-types scripts/invite-pending.ts --send
+```
+
+Until sending is on, the form tells people their address is held and a confirmation link will follow
+rather than claiming an email is on its way. That script is what makes good on it. It skips anyone
+already confirmed or unsubscribed.
 
 The first cron run after deploy adopts all currently-published posts as already-sent and mails
 nobody. That is deliberate, and it means turning this on cannot blast the back catalogue. The first
