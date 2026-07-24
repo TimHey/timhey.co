@@ -6,7 +6,7 @@ import { useState } from "react";
 // is captured server-side by middleware into a first-party cookie; this form just posts the email,
 // and /api/subscribe reads that cookie to attribute the signup. See src/middleware.ts.
 
-type State = "idle" | "loading" | "done" | "dupe" | "error";
+type State = "idle" | "loading" | "check" | "dupe" | "error";
 
 export function Subscribe({
   caption = "Get new posts by email.",
@@ -37,14 +37,18 @@ export function Subscribe({
         return;
       }
       const data = (await res.json().catch(() => ({}))) as { duplicate?: boolean };
-      setState(data.duplicate ? "dupe" : "done");
+      setState(data.duplicate ? "dupe" : "check");
     } catch {
       setState("error");
     }
   }
 
-  if (state === "done") {
-    return <p className="subscribe-done">Thanks &mdash; you&apos;re on the list.</p>;
+  if (state === "check") {
+    return (
+      <p className="subscribe-done">
+        Check your email &mdash; one click to confirm and you&apos;re on.
+      </p>
+    );
   }
   if (state === "dupe") {
     return <p className="subscribe-done">You&apos;re already on the list.</p>;
