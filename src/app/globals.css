@@ -191,16 +191,7 @@ footer.site {
 footer.site a { color: var(--muted); }
 footer.site .social { margin-top: 12px; }
 
-/* Subscribe — header CTA + below-h1 capture */
-header.site nav a.nav-subscribe {
-  color: var(--bg);
-  background: var(--accent);
-  padding: 5px 13px;
-  border-radius: 6px;
-  font-size: 14px;
-}
-header.site nav a.nav-subscribe:hover { color: var(--bg); opacity: 0.9; }
-
+/* Subscribe — below-h1 capture */
 .index-subscribe { margin-top: 22px; }
 .subscribe-cap { font-size: 14px; color: var(--muted); margin: 0 0 8px; }
 .subscribe { display: flex; gap: 8px; max-width: 400px; }
@@ -210,8 +201,8 @@ header.site nav a.nav-subscribe:hover { color: var(--bg); opacity: 0.9; }
 }
 .subscribe input:focus { outline: none; border-color: var(--accent); }
 .subscribe button {
-  padding: 9px 16px; border: none; border-radius: 6px; background: var(--accent);
-  color: #fff; font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; white-space: nowrap;
+  padding: 9px 16px; border: none; border-radius: 6px; background: var(--ink);
+  color: var(--bg); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; white-space: nowrap;
 }
 .subscribe button:hover { opacity: 0.9; }
 .subscribe button:disabled { opacity: 0.55; cursor: default; }

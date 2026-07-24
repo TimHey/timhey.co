@@ -94,7 +94,6 @@ export default function RootLayout({
               <Link href="/">Writing</Link>
               <Link href="/agents">Agents</Link>
               <Link href="/resume">Resume</Link>
-              <Link href="/#subscribe" className="nav-subscribe">Subscribe</Link>
               <Social inNav />
             </nav>
           </header>
