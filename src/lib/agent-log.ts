@@ -5,6 +5,8 @@
 
 // The Vercel Upstash integration sets one of these name pairs depending on
 // version; accept either so the code doesn't care which was provisioned.
+import { isProbe, normalizePath } from "./agent-filter";
+
 const REST_URL =
   process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
 const REST_TOKEN =
@@ -79,6 +81,17 @@ export async function record(hit: Hit): Promise<void> {
   ]);
 }
 
+// Vulnerability scans are counted but never itemized: the path list is the
+// scanner's wordlist, not information about this site. Total and per-day only.
+export async function recordProbe(): Promise<void> {
+  if (!storeConfigured()) return;
+  const day = utcDay(new Date());
+  await pipeline([
+    ["INCR", "probes:total"],
+    ["HINCRBY", "probes:days", day, 1],
+  ]);
+}
+
 export interface DayStat {
   day: string;
   total: number;
@@ -92,6 +105,8 @@ export interface Stats {
   paths: Record<string, number>;
   recent: RecentHit[];
   byDay: DayStat[];
+  /** Vulnerability scans, filtered out of everything above. */
+  probes: { total: number; byDay: Record<string, number> };
 }
 
 export async function readStats(days = 14): Promise<Stats | null> {
@@ -108,12 +123,26 @@ export async function readStats(days = 14): Promise<Stats | null> {
     ["HGETALL", "agents:totals"],
     ["HGETALL", "agents:paths"],
     ["LRANGE", "agents:recent", 0, 49],
+    ["GET", "probes:total"],
+    ["HGETALL", "probes:days"],
     ...dayKeys.map((k) => ["HGETALL", `agents:day:${k}`] as Cmd),
   ]);
   if (!res) return null;
 
   const totals = hashToCounts(res[0]);
-  const paths = hashToCounts(res[1]);
+
+  // The log ran for weeks before it could tell a reader from a scanner, so the
+  // stored history still holds probe paths and punctuation-mangled duplicates.
+  // Reclassify on read: it costs nothing, needs no migration, and it means the
+  // rules only live in one place. Cleanly-written data passes through untouched.
+  const paths: Record<string, number> = {};
+  let legacyProbes = 0;
+  for (const [field, n] of Object.entries(hashToCounts(res[1]))) {
+    const clean = normalizePath(field);
+    if (isProbe(clean)) legacyProbes += n;
+    else paths[clean] = (paths[clean] ?? 0) + n;
+  }
+
   const recent = (Array.isArray(res[2]) ? (res[2] as string[]) : [])
     .map((s) => {
       try {
@@ -122,12 +151,19 @@ export async function readStats(days = 14): Promise<Stats | null> {
         return null;
       }
     })
-    .filter((x): x is RecentHit => x !== null);
+    .filter((x): x is RecentHit => x !== null)
+    .map((h) => ({ ...h, path: normalizePath(h.path) }))
+    .filter((h) => !isProbe(h.path));
+
+  const probes = {
+    total: (Number(res[3] ?? 0) || 0) + legacyProbes,
+    byDay: hashToCounts(res[4]),
+  };
   const byDay: DayStat[] = dayKeys.map((day, i) => {
-    const agents = hashToCounts(res[3 + i]);
+    const agents = hashToCounts(res[5 + i]);
     const total = Object.values(agents).reduce((a, b) => a + b, 0);
     return { day, total, agents };
   });
 
-  return { totals, paths, recent, byDay };
+  return { totals, paths, recent, byDay, probes };
 }

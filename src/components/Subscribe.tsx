@@ -6,11 +6,21 @@ import { useState } from "react";
 // is captured server-side by middleware into a first-party cookie; this form just posts the email,
 // and /api/subscribe reads that cookie to attribute the signup. See src/middleware.ts.
 
-type State = "idle" | "loading" | "done" | "error";
+type State = "idle" | "loading" | "done" | "dupe" | "error";
 
-export function Subscribe() {
+export function Subscribe({
+  caption = "Get new posts by email.",
+  source = "home",
+}: {
+  /** Line above the field. Worth varying: what earns the signup differs by page. */
+  caption?: string;
+  /** Which placement converted, so the two can be compared. */
+  source?: string;
+}) {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<State>("idle");
+  // Honeypot. Bots fill every field they find; people never see this one.
+  const [website, setWebsite] = useState("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -20,21 +30,29 @@ export function Subscribe() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), source, website }),
       });
-      setState(res.ok ? "done" : "error");
+      if (!res.ok) {
+        setState("error");
+        return;
+      }
+      const data = (await res.json().catch(() => ({}))) as { duplicate?: boolean };
+      setState(data.duplicate ? "dupe" : "done");
     } catch {
       setState("error");
     }
   }
 
   if (state === "done") {
-    return <p className="subscribe-done">Thanks — you&apos;re on the list.</p>;
+    return <p className="subscribe-done">Thanks &mdash; you&apos;re on the list.</p>;
+  }
+  if (state === "dupe") {
+    return <p className="subscribe-done">You&apos;re already on the list.</p>;
   }
 
   return (
     <>
-      <p className="subscribe-cap">Get new posts by email.</p>
+      <p className="subscribe-cap">{caption}</p>
       <form className="subscribe" onSubmit={submit}>
         <input
           type="email"
@@ -43,6 +61,17 @@ export function Subscribe() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           aria-label="Email address"
+        />
+        {/* Honeypot: off-screen, not tabbable, no autofill. */}
+        <input
+          type="text"
+          name="website"
+          className="subscribe-hp"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
         />
         <button type="submit" disabled={state === "loading"}>
           {state === "loading" ? "…" : "Subscribe"}

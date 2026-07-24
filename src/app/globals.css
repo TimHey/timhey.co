@@ -118,6 +118,16 @@ article hr { border: 0; border-top: 1px solid var(--rule); margin: 36px 0; }
 .crawlers { margin-top: 56px; border-top: 1px solid var(--rule); padding-top: 8px; }
 .crawlers .stat { font-size: 15px; color: var(--muted); margin: 0 0 22px; }
 .crawlers .stat b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.crawlers .stat-note {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: -14px 0 24px;
+  padding-left: 12px;
+  border-left: 2px solid var(--rule);
+}
+.crawlers .stat-note b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.crawlers .stat-note code { font-size: 12.5px; }
 .crawlers-empty { color: var(--muted); font-size: 15px; }
 .crawlers-raw { font-size: 13px; color: var(--muted); margin-top: 24px; }
 
@@ -208,3 +218,17 @@ footer.site .social { margin-top: 12px; }
 .subscribe button:disabled { opacity: 0.55; cursor: default; }
 .subscribe-done { font-size: 15px; color: var(--muted); margin: 22px 0 0; }
 .subscribe-err { display: block; margin-top: 6px; color: #dc2626; font-size: 13px; }
+/* Honeypot: reachable by a bot parsing the DOM, invisible to a person and to a screen reader. */
+.subscribe-hp {
+  position: absolute; left: -9999px; width: 1px; height: 1px;
+  opacity: 0; pointer-events: none;
+}
+
+/* End-of-post capture. The ask sits after the read, so it gets a rule and room
+   rather than competing with the last paragraph. */
+.post-subscribe {
+  margin-top: 56px;
+  border-top: 1px solid var(--rule);
+  padding-top: 24px;
+}
+.post-subscribe .subscribe-done { margin-top: 0; }

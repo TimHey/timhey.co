@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getAllSlugs, getPost } from "@/lib/posts";
 import { SITE, absolute } from "@/lib/site";
 import { graph, jsonLd, BLOG_ID, PERSON_ID } from "@/lib/schema";
+import { Subscribe } from "@/components/Subscribe";
 
 // Rebuild hourly so a post goes live on its date without a manual deploy.
 // Future-dated slugs are not pre-rendered; they generate on demand once due.
@@ -99,6 +100,11 @@ export default async function PostPage({
         </time>
         <div dangerouslySetInnerHTML={{ __html: post.html }} />
       </article>
+      {/* Most arrivals land on a post, not the index — so the ask belongs here,
+          after they've read the thing, not only on a homepage they never see. */}
+      <aside className="post-subscribe">
+        <Subscribe caption="One post a week on selling to agents. No other email." source="post" />
+      </aside>
     </>
   );
 }

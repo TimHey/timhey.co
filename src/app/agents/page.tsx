@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { getAllPosts } from "@/lib/posts";
 import { readStats, type RecentHit } from "@/lib/agent-log";
+import { Subscribe } from "@/components/Subscribe";
 
 export const metadata: Metadata = {
   title: "What agents read",
@@ -51,6 +52,7 @@ export default async function AgentsPage() {
   const byDay = stats ? [...stats.byDay].reverse() : []; // oldest -> newest
   const maxDay = Math.max(1, ...byDay.map((d) => d.total));
   const recent = stats?.recent.slice(0, 12) ?? [];
+  const probes = stats?.probes.total ?? 0;
 
   return (
     <main>
@@ -109,6 +111,16 @@ export default async function AgentsPage() {
               <b>{totals.length}</b> distinct{" "}
               {totals.length === 1 ? "agent" : "agents"}.
             </p>
+
+            {probes > 0 && (
+              <p className="stat-note">
+                Not counted: <b>{probes.toLocaleString()}</b> vulnerability
+                scans &mdash; requests for <code>.env</code> files, PHP shells,
+                and SSH keys this site has never served. Every public host gets
+                them. They&rsquo;re filtered out on purpose, because a number
+                that counts scanners as readers isn&rsquo;t measuring anything.
+              </p>
+            )}
 
             <h3>By agent</h3>
             <ul className="bars">
@@ -181,6 +193,13 @@ export default async function AgentsPage() {
           </>
         )}
       </section>
+
+      <aside className="post-subscribe">
+        <Subscribe
+          caption="These numbers move every week. Get what they show, by email."
+          source="agents"
+        />
+      </aside>
     </main>
   );
 }
