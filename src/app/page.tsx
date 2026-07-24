@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAllPosts } from "@/lib/posts";
 import { SITE, SITE_URL, absolute } from "@/lib/site";
 import { graph, jsonLd, BLOG_ID, WEBSITE_ID, PERSON_ID } from "@/lib/schema";
+import { Subscribe } from "@/components/Subscribe";
 
 // Refresh hourly so a newly-due post appears in the listing on its date.
 export const revalidate = 3600;
@@ -46,6 +47,9 @@ export default function Home() {
       <header className="index-intro">
         <h1>Field notes on selling to agents</h1>
         <p>The web was built to sell to humans. That era is ending.</p>
+        <div id="subscribe" className="index-subscribe">
+          <Subscribe />
+        </div>
       </header>
       <ul className="posts">
         {posts.map((p) => (

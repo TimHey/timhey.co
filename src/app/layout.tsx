@@ -3,7 +3,6 @@ import Link from "next/link";
 import "./globals.css";
 import { SITE, SITE_URL, absolute } from "@/lib/site";
 import { Analytics } from "./analytics";
-import { Subscribe } from "@/components/Subscribe";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -95,12 +94,12 @@ export default function RootLayout({
               <Link href="/">Writing</Link>
               <Link href="/agents">Agents</Link>
               <Link href="/resume">Resume</Link>
+              <Link href="/#subscribe" className="nav-subscribe">Subscribe</Link>
               <Social inNav />
             </nav>
           </header>
           {children}
           <footer className="site">
-            <Subscribe />
             <p>
               {SITE.role}. Field notes, not theory.{" "}
               <a href="/llms.txt">llms.txt</a> · <a href="/feed.xml">RSS</a>
