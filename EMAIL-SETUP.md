@@ -3,20 +3,72 @@
 The code is built and tested. Nothing sends until steps 3 and 5 are done, so you can work through
 this at any pace. Order matters: DNS has to verify before a send will succeed.
 
-**Important:** this domain is on **Google Cloud DNS** (`ns-cloud-b1..b4.googledomains.com`), not
-Cloudflare. pickrate.io and purelysearch.com are Cloudflare; this one isn't. Different console.
+**Where DNS actually lives:** timhey.co is registered at **Squarespace** (Key-Systems GmbH is their
+reseller of record). The `ns-cloud-b1..b4.googledomains.com` nameservers are left over from
+Squarespace acquiring Google Domains — they are *not* a Google Cloud DNS project you can log into.
+Records are edited in the Squarespace domains console. Decision below is to move this to Cloudflare,
+where pickrate.io and purelysearch.com already are.
 
 ---
+
+## 0. Move DNS to Cloudflare first
+
+Do this before touching any email record, so that if mail or the site breaks you know which change
+did it. Migration carries the existing records; nothing about email changes yet.
+
+**Current records, as observed live.** Everything here has to exist at Cloudflare before the
+nameserver switch:
+
+| type | name | value | note |
+| --- | --- | --- | --- |
+| A | `@` | `76.76.21.21` | Vercel. **DNS only, grey cloud** |
+| CNAME | `www` | `cname.vercel-dns.com` | Vercel. **DNS only, grey cloud** |
+| MX | `@` | `aspmx.l.google.com` (1) | Google Workspace |
+| MX | `@` | `alt1.aspmx.l.google.com` (5) | |
+| MX | `@` | `alt2.aspmx.l.google.com` (5) | |
+| MX | `@` | `alt3.aspmx.l.google.com` (10) | |
+| MX | `@` | `alt4.aspmx.l.google.com` (10) | |
+| A | `*` | `199.34.228.47` | old Squarespace site — see below |
+| A | `mail` | `216.21.224.199` | Squarespace — see below |
+| CNAME | `_domainconnect` | `_domainconnect.domains.squarespace.com` | Squarespace plumbing |
+
+- [ ] Add timhey.co at Cloudflare, let it scan, then **compare against the table above** and add
+      anything it missed. Cloudflare's scanner guesses common names; it cannot enumerate a zone.
+- [ ] Set the root A and the www CNAME to **DNS only (grey cloud)**. Proxying in front of Vercel
+      causes certificate and redirect problems.
+- [ ] Change nameservers at Squarespace to the two Cloudflare gives you
+- [ ] Wait for Cloudflare to show Active (usually under an hour, can be 24)
+
+**Two records worth dropping rather than carrying**, both pointing at a Squarespace site that isn't
+the live site any more. Decide deliberately, don't copy them by reflex:
+
+- The `*` wildcard means every nonexistent subdomain resolves to Squarespace. That is why
+  `anything.timhey.co` currently returns a page. Dropping it makes typos fail cleanly, which is what
+  you want once real subdomains exist.
+- `mail.timhey.co` is a Squarespace record, unrelated to Google Workspace mail delivery (which runs
+  entirely off the MX records above). Dropping it does not affect your email.
+
+Verify after the switch, before going further:
+
+```
+dig +short NS timhey.co          # cloudflare
+dig +short A timhey.co           # 76.76.21.21
+dig +short CNAME www.timhey.co   # cname.vercel-dns.com
+dig +short MX timhey.co          # the five google records
+```
+
+- [ ] Load https://www.timhey.co and confirm the site is up
+- [ ] Send yourself an email at your timhey.co address and confirm it arrives
 
 ## 1. Fix the root domain's email records
 
 These are missing today. Worth doing whether or not the newsletter ships: with no SPF and no DMARC,
 nothing declares who is allowed to send as timhey.co.
 
-At Google Cloud DNS, on the **timhey.co** zone. No quotes around any value.
+At Cloudflare, on the **timhey.co** zone. No quotes around any value.
 
-- [ ] **TXT** on `timhey.co` (root) → `v=spf1 include:_spf.google.com ~all`
-- [ ] **TXT** on `_dmarc.timhey.co` → `v=DMARC1; p=quarantine; rua=mailto:tim@timhey.co`
+- [ ] **TXT** on `@` (root) → `v=spf1 include:_spf.google.com ~all`
+- [ ] **TXT** on `_dmarc` → `v=DMARC1; p=quarantine; rua=mailto:tim@timhey.co`
 
 Start at `p=quarantine`. Move to `p=reject` later, once the DMARC reports show clean.
 
@@ -29,19 +81,25 @@ dig +short TXT _dmarc.timhey.co
 
 ## 2. Add the sending subdomain at Resend
 
-- [ ] Create the Resend account (or reuse the Pickrate one)
-- [ ] Add domain `send.timhey.co`
-- [ ] Copy the three records Resend shows you into **Google Cloud DNS**:
-  - MX on `send.timhey.co` → `feedback-smtp.us-east-1.amazonses.com` (priority 10)
-  - TXT on `send.timhey.co` → `v=spf1 include:amazonses.com ~all`
-  - TXT on `resend._domainkey.send.timhey.co` → the long DKIM value Resend gives you
+Use the existing Pickrate account — Resend allows many domains per account, and the free tier's
+3,000/month and 100/day are shared across them. Plenty for both at current volume.
+
+- [ ] Resend → Domains → Add Domain → `send.timhey.co`, region us-east-1
+- [ ] Copy the three records it shows into **Cloudflare**, on the timhey.co zone. Set all three to
+      **DNS only (grey cloud)** — a proxied TXT or MX record breaks verification:
+  - MX on `send` → `feedback-smtp.us-east-1.amazonses.com`, priority 10
+  - TXT on `send` → `v=spf1 include:amazonses.com ~all`
+  - TXT on `resend._domainkey.send` → the long DKIM value Resend shows you
 - [ ] Click Verify in Resend, wait for green
 
 Using a subdomain keeps newsletter reputation separate from your Google Workspace mail on the root.
 Same split as pickrate.io.
 
 Gotcha you have hit twice before: paste values **without** surrounding quotes, and make sure you are
-editing the `send.timhey.co` row, not the root row.
+editing the `send` row, not the root row.
+
+Note that Cloudflare appends the zone automatically. Entering `send` gives you `send.timhey.co`;
+entering `send.timhey.co` gives you `send.timhey.co.timhey.co`.
 
 Verify:
 
@@ -53,8 +111,13 @@ dig +short TXT resend._domainkey.send.timhey.co
 
 ## 3. Get a Resend API key
 
-- [ ] Resend → API Keys → create one with send permission
+The existing Pickrate key will not work here — it came back `restricted_api_key`, meaning
+send-only and scoped to that domain. This needs its own.
+
+- [ ] Resend → API Keys → Create, permission **Sending access**, domain `send.timhey.co`
 - [ ] Keep it out of chat and out of the repo. It goes straight into Vercel in step 5.
+
+Scoping the key to this one domain means a leak from this site can't send as pickrate.io.
 
 ## 4. Decide on a postal address
 
@@ -67,17 +130,30 @@ address is worth avoiding.
 
 ## 5. Set the Vercel env vars
 
-Project → Settings → Environment Variables, Production. Add the first four, confirm things work,
-then add the last one.
+Project → Settings → Environment Variables, Production.
 
-- [ ] `RESEND_API_KEY` → from step 3
-- [ ] `NEWSLETTER_SECRET` → generate with `openssl rand -hex 32`. Signs confirm and unsubscribe
-      links. **Never change it after launch** or every unsubscribe link in every already-delivered
-      email stops working.
-- [ ] `CRON_SECRET` → `openssl rand -hex 32`. Vercel sends this to the cron route; without it the
-      route returns 401 to everyone, including Vercel.
+Already set:
+
+- [x] `NEWSLETTER_SECRET` — generated and stored encrypted, never printed anywhere. Signs confirm and
+      unsubscribe links. **Never rotate it after launch** or every unsubscribe link in every
+      already-delivered email stops working, which is how you collect spam complaints.
+- [x] `CRON_SECRET` — generated and stored encrypted. Vercel sends this to the cron route; without it
+      the route returns 401 to everyone, including Vercel.
+
+Still needed:
+
+- [ ] `RESEND_API_KEY` → from step 3. Add it yourself so the value never lands in a transcript:
+
+      npx vercel env add RESEND_API_KEY production
+
+      then paste at the prompt. In a Claude Code session, prefix with `!` to run it here.
+
 - [ ] `NEWSLETTER_POSTAL_ADDRESS` → from step 4
 - [ ] `NEWSLETTER_ENABLED` → `1` **(do this last — it's the arming switch)**
+- [ ] Optional but recommended: `NEWSLETTER_REPLY_TO` → `tim@timhey.co`, so replies reach your inbox
+      instead of a send-only subdomain
+
+Env changes only take effect on a new deploy. Redeploy after the last one.
 
 Optional:
 
