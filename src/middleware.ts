@@ -1,5 +1,13 @@
 import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server";
 import { record } from "@/lib/agent-log";
+import { createCollector } from "@pickrate/collector";
+
+// Dogfooding @pickrate/collector: stream this site's agent hits to Pickrate alongside the local
+// Upstash log. No-ops without PICKRATE_KEY, so dev/preview are unaffected until the env is set.
+const pickrate = createCollector({
+  key: process.env.PICKRATE_KEY ?? "",
+  endpoint: process.env.PICKRATE_ENDPOINT,
+});
 
 // This site's subject is agent-readable content, so it measures its own agent
 // readers. Middleware runs before the CDN cache, which is the only place that
@@ -72,6 +80,10 @@ export function middleware(req: NextRequest, event: NextFetchEvent) {
     // the response path — the visitor (agent) never waits on it.
     event.waitUntil(record({ agent: agent ?? "unknown", surface, path }));
   }
+
+  // Report to Pickrate too. report() classifies internally (GET/HEAD agent hits only) and no-ops on
+  // human/asset traffic, so this is cheap on every request and off the response path via waitUntil.
+  event.waitUntil(pickrate.report({ method: req.method, path, userAgent: ua }));
 
   return NextResponse.next();
 }
