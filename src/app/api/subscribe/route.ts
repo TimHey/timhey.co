@@ -12,6 +12,23 @@ const PICKRATE_KEY = process.env.PICKRATE_KEY;
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
+// The authoritative first-touch: read the pr_ft cookie the middleware set server-side (a ?via= tag
+// or an AI-referrer host). Preferred over anything the client sends.
+function readFirstTouch(req: Request): { via?: string; ref?: string } {
+  const cookie = req.headers.get("cookie") ?? "";
+  const m = cookie.match(/(?:^|; )pr_ft=([^;]+)/);
+  if (!m) return {};
+  try {
+    const v = JSON.parse(decodeURIComponent(m[1])) as { via?: unknown; ref?: unknown };
+    return {
+      via: typeof v.via === "string" ? v.via.slice(0, 60) : undefined,
+      ref: typeof v.ref === "string" ? v.ref.slice(0, 120) : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 async function storeSubscriber(email: string): Promise<void> {
   if (!REST_URL || !REST_TOKEN) return;
   try {
@@ -64,8 +81,10 @@ export async function POST(req: Request) {
   if (!EMAIL_RE.test(email) || email.length > 200) {
     return NextResponse.json({ error: "invalid email" }, { status: 400 });
   }
-  const via = body?.via ? String(body.via).slice(0, 60) : undefined;
-  const ref = body?.ref ? String(body.ref).slice(0, 120) : undefined;
+  // The cookie (set server-side by middleware) is authoritative; body values are a fallback.
+  const ft = readFirstTouch(req);
+  const via = ft.via ?? (body?.via ? String(body.via).slice(0, 60) : undefined);
+  const ref = ft.ref ?? (body?.ref ? String(body.ref).slice(0, 120) : undefined);
 
   await storeSubscriber(email);
   await reportConversion(email, via, ref);

@@ -23,10 +23,12 @@ export function GET() {
   lines.push("");
   lines.push(`${SITE.author}, ${SITE.role} at Zapier.`);
   lines.push("");
+  lines.push("Every page here is available as raw Markdown — append `.md` to any URL, or send `Accept: text/markdown`.");
+  lines.push("");
   lines.push("## Writing");
   lines.push("");
   for (const p of posts) {
-    lines.push(`- [${p.title}](${via(`/posts/${p.slug}.md`)}): ${p.description}`);
+    lines.push(`- [${p.title}](${via(`/posts/${p.slug}`)}): ${p.description}`);
   }
   lines.push("");
   lines.push("## More");

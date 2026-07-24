@@ -1,28 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-// Newsletter subscribe — a real conversion. On first arrival it remembers how the visitor got here
-// (an ?via= tag or the referring host, first-touch-wins), and on submit it sends that along so
-// Pickrate can attribute the signup to the agent that referred them. See /api/subscribe.
-
-const FT_COOKIE = "pr_ft";
-
-function getCookie(name: string): string | null {
-  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return m ? decodeURIComponent(m[1]) : null;
-}
-function setCookie(name: string, value: string, days = 180) {
-  const exp = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${exp}; path=/; SameSite=Lax`;
-}
-function hostOf(url: string): string {
-  try {
-    return new URL(url).host;
-  } catch {
-    return "";
-  }
-}
+// Newsletter subscribe — a real conversion. How the visitor arrived (a ?via= tag or an AI referrer)
+// is captured server-side by middleware into a first-party cookie; this form just posts the email,
+// and /api/subscribe reads that cookie to attribute the signup to the agent. See src/middleware.ts.
 
 type State = "idle" | "loading" | "done" | "error";
 
@@ -30,31 +12,15 @@ export function Subscribe() {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<State>("idle");
 
-  // First-touch-wins: record the arrival source once, so it survives across pages until they subscribe.
-  useEffect(() => {
-    if (getCookie(FT_COOKIE)) return;
-    const via = new URLSearchParams(window.location.search).get("via") ?? "";
-    const ref = document.referrer ? hostOf(document.referrer) : "";
-    if (via || (ref && ref !== window.location.host)) {
-      setCookie(FT_COOKIE, JSON.stringify({ via, ref }));
-    }
-  }, []);
-
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim() || state === "loading") return;
     setState("loading");
-    let ft: { via?: string; ref?: string } = {};
-    try {
-      ft = JSON.parse(getCookie(FT_COOKIE) ?? "{}");
-    } catch {
-      /* no first-touch */
-    }
     try {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), via: ft.via, ref: ft.ref }),
+        body: JSON.stringify({ email: email.trim() }),
       });
       setState(res.ok ? "done" : "error");
     } catch {
@@ -89,9 +55,7 @@ export function Subscribe() {
           {state === "loading" ? "…" : "Subscribe"}
         </button>
       </div>
-      {state === "error" && (
-        <span style={{ fontSize: "0.8rem", color: "#dc2626" }}>Something went wrong — try again?</span>
-      )}
+      {state === "error" && <span style={{ fontSize: "0.8rem", color: "#dc2626" }}>Something went wrong — try again?</span>}
     </form>
   );
 }

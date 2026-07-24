@@ -59,6 +59,51 @@ function identify(ua: string): string | null {
   return null;
 }
 
+// Known AI-assistant referrer hosts -> agent name, for first-touch capture below.
+const AI_REFERRERS: [string, string][] = [
+  ["chatgpt.com", "ChatGPT"],
+  ["chat.openai.com", "ChatGPT"],
+  ["openai.com", "ChatGPT"],
+  ["claude.ai", "Claude"],
+  ["perplexity.ai", "Perplexity"],
+  ["gemini.google.com", "Gemini"],
+  ["copilot.microsoft.com", "Copilot"],
+];
+function aiReferrer(host: string): string | null {
+  const h = host.toLowerCase().replace(/^www\./, "");
+  for (const [d, name] of AI_REFERRERS) if (h === d || h.endsWith(`.${d}`)) return name;
+  return null;
+}
+
+// First-touch capture (first-touch-wins): remember how a visitor arrived — a ?via= tag (a link an
+// agent handed out, e.g. tagged in llms.txt) or a known AI-assistant referrer — in a first-party
+// cookie. /api/subscribe reads it so a signup is attributed to the agent. Set server-side here so it
+// works on ANY entry (an HTML page, a .md mirror, a well-known file), not only where client JS runs.
+const FT_COOKIE = "pr_ft";
+function captureFirstTouch(req: NextRequest, res: NextResponse): void {
+  if (req.method !== "GET" && req.method !== "HEAD") return;
+  if (req.cookies.get(FT_COOKIE)) return; // first touch wins — never overwrite
+  const via = req.nextUrl.searchParams.get("via");
+  let refHost = "";
+  try {
+    refHost = new URL(req.headers.get("referer") ?? "").host;
+  } catch {
+    /* no / invalid referrer */
+  }
+  const agent = refHost ? aiReferrer(refHost) : null;
+  let ft: Record<string, string> | null = null;
+  if (via) ft = { via: via.slice(0, 60) };
+  else if (agent) ft = { ref: refHost, agent };
+  if (!ft) return;
+  res.cookies.set(FT_COOKIE, JSON.stringify(ft), {
+    maxAge: 60 * 60 * 24 * 180,
+    path: "/",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: false, // the API route reads it server-side; the client may read it too
+  });
+}
+
 export function middleware(req: NextRequest, event: NextFetchEvent) {
   const ua = req.headers.get("user-agent") ?? "";
   const path = req.nextUrl.pathname;
@@ -85,7 +130,9 @@ export function middleware(req: NextRequest, event: NextFetchEvent) {
   // human/asset traffic, so this is cheap on every request and off the response path via waitUntil.
   event.waitUntil(pickrate.report({ method: req.method, path, userAgent: ua }));
 
-  return NextResponse.next();
+  const res = NextResponse.next();
+  captureFirstTouch(req, res);
+  return res;
 }
 
 export const config = {
