@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check:ard": "node --experimental-strip-types scripts/check-ard.ts"
   },
   "dependencies": {
     "@pickrate/collector": "^0.1.0",
@@ -20,6 +21,8 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "typescript": "^5.7.0"
   }
 }

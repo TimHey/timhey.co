@@ -14,9 +14,11 @@ npm run dev                 # dev server at http://localhost:3000
 SHOW_DRAFTS=1 npm run dev    # also renders future-dated (unpublished) posts
 npm run build               # production build — run before declaring a change done
 npm run lint                # eslint via next lint
+npm run check:ard           # validate the ARD catalog against the official JSON Schema
+npm run check:ard -- --live # also validate what the deployed site serves
 ```
 
-There are no automated tests. Verify changes by running `npm run build` (it must compile and type-check clean) and by loading the affected route in `npm run dev`.
+There are no automated tests. Verify changes by running `npm run build` (it must compile and type-check clean) and by loading the affected route in `npm run dev`. If you touched the ARD catalog or anything it reads (posts, `site.ts`), run `npm run check:ard` too.
 
 ## Project structure
 
@@ -25,6 +27,7 @@ There are no automated tests. Verify changes by running `npm run build` (it must
 - `src/lib/site.ts` — **single source of identity**. Name, role, URL, social links live here. Change them here, nowhere else.
 - `src/lib/posts.ts` — reads, parses, and schedules posts.
 - `src/lib/schema.ts` — the JSON-LD `@graph`.
+- `src/lib/ard.ts` — the ARD capability manifest served at `/.well-known/ai-catalog.json`. `src/lib/ard.schema.json` is the official spec schema, vendored; `scripts/check-ard.ts` validates one against the other.
 - `next.config.ts` — the `/posts/<slug>.md` → `/api/md/<slug>` rewrite.
 - `drafts/` — unpublished work. **Gitignored. Never commit it.**
 
