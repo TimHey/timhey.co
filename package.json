@@ -10,7 +10,7 @@
     "check:ard": "node --experimental-strip-types scripts/check-ard.ts"
   },
   "dependencies": {
-    "@pickrate/collector": "^0.1.0",
+    "@pickrate/collector": "^0.2.1",
     "gray-matter": "^4.0.3",
     "marked": "^14.1.4",
     "next": "^15.5.0",
