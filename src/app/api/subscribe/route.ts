@@ -13,7 +13,9 @@ import { absolute } from "@/lib/site";
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-const PICKRATE_ENDPOINT = process.env.PICKRATE_ENDPOINT;
+// Default the endpoint like @pickrate/collector does, so a missing PICKRATE_ENDPOINT doesn't
+// silently drop touch/convert while reads (which default it) keep working — only PICKRATE_KEY is required.
+const PICKRATE_ENDPOINT = process.env.PICKRATE_ENDPOINT || "https://pickrate.io/api/collect";
 const PICKRATE_KEY = process.env.PICKRATE_KEY;
 
 // A public endpoint that writes to a store and sends mail needs a ceiling.

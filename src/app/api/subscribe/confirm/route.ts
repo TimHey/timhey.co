@@ -15,9 +15,11 @@ const MAX_AGE = 7 * 24 * 60 * 60 * 1000; // links expire after a week
 // Report a conversion to Pickrate at confirmation rather than at submit: an unconfirmed address
 // isn't a subscriber, so counting it as one would overstate every agent's conversion rate.
 async function reportConversion(email: string): Promise<void> {
-  const endpoint = process.env.PICKRATE_ENDPOINT;
+  // Default the endpoint (see ../route.ts) so a missing PICKRATE_ENDPOINT can't silently drop the
+  // conversion — only PICKRATE_KEY is required.
+  const endpoint = process.env.PICKRATE_ENDPOINT || "https://pickrate.io/api/collect";
   const key = process.env.PICKRATE_KEY;
-  if (!endpoint || !key) return;
+  if (!key) return;
   try {
     await fetch(endpoint, {
       method: "POST",
