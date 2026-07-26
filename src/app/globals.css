@@ -146,7 +146,10 @@ article hr { border: 0; border-top: 1px solid var(--rule); margin: 36px 0; }
 .bars .fill { display: block; background: var(--accent); height: 100%; min-width: 2px; }
 .bars .n { color: var(--muted); font-variant-numeric: tabular-nums; }
 
-.spark { display: flex; align-items: flex-end; gap: 3px; height: 48px; margin: 0; }
+.spark { display: flex; align-items: stretch; gap: 3px; height: 48px; margin: 0; }
+/* The col is the full-height grey track; the absolutely positioned span inside is the filled part.
+   The track has no content of its own, so it has to be stretched or its percentage-height child
+   resolves against a collapsed 1px box and every bar renders as a hairline. */
 .spark .col { flex: 1; background: var(--soft); border-radius: 2px 2px 0 0; position: relative; min-height: 1px; }
 .spark .col > span { position: absolute; left: 0; right: 0; bottom: 0; background: var(--accent); border-radius: 2px 2px 0 0; min-height: 1px; }
 .spark-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin: 6px 0 0; }
