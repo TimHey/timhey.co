@@ -62,22 +62,49 @@ export interface Hit {
   agent: string;
   surface: boolean;
   path: string;
+  /** Raw UA, kept only when the agent couldn't be named. See below. */
+  ua?: string;
 }
 
 const DAY_TTL = 60 * 60 * 24 * 120; // keep per-day hashes ~120 days
+const UA_TTL = 60 * 60 * 24 * 60; // unknown-UA histogram rolls every ~60 days
 
 export async function record(hit: Hit): Promise<void> {
   if (!storeConfigured()) return;
   const now = new Date();
   const day = utcDay(now);
-  const entry = JSON.stringify({ ...hit, day, ts: now.toISOString() });
-  await pipeline([
+  const { ua, ...rest } = hit;
+  const entry = JSON.stringify({ ...rest, day, ts: now.toISOString() });
+  const cmds: Cmd[] = [
     ["HINCRBY", "agents:totals", hit.agent, 1],
     ["HINCRBY", `agents:day:${day}`, hit.agent, 1],
     ["EXPIRE", `agents:day:${day}`, DAY_TTL],
     ["HINCRBY", "agents:paths", hit.path, 1],
     ["LPUSH", "agents:recent", entry],
     ["LTRIM", "agents:recent", 0, 199],
+  ];
+
+  // "unknown" was the third-biggest reader here and there was no way to find out
+  // what it was: the UA went to the console and expired with the log. Keep the
+  // string when — and only when — the agent is unnamed, so the list above can be
+  // extended from evidence instead of guesswork. Truncated, and it expires.
+  if (hit.agent === "unknown" && ua) {
+    const field = ua.slice(0, 120);
+    cmds.push(["HINCRBY", "agents:unknown-uas", field, 1], ["EXPIRE", "agents:unknown-uas", UA_TTL]);
+  }
+
+  await pipeline(cmds);
+}
+
+// Scripts and generic HTTP clients hitting an agent surface. Counted like probes
+// are — visible in aggregate, kept out of the agent numbers, never itemized by
+// path, because a curl loop's path list says nothing about who reads this site.
+export async function recordTooling(tool: string): Promise<void> {
+  if (!storeConfigured()) return;
+  const day = utcDay(new Date());
+  await pipeline([
+    ["HINCRBY", "tools:totals", tool, 1],
+    ["HINCRBY", "tools:days", day, 1],
   ]);
 }
 
@@ -107,6 +134,10 @@ export interface Stats {
   byDay: DayStat[];
   /** Vulnerability scans, filtered out of everything above. */
   probes: { total: number; byDay: Record<string, number> };
+  /** Scripts and generic HTTP clients, also filtered out of everything above. */
+  tooling: { total: number; byTool: Record<string, number>; byDay: Record<string, number> };
+  /** Raw user-agents behind the remaining "unknown" hits, most frequent first. */
+  unknownUas: Record<string, number>;
 }
 
 export async function readStats(days = 14): Promise<Stats | null> {
@@ -125,6 +156,9 @@ export async function readStats(days = 14): Promise<Stats | null> {
     ["LRANGE", "agents:recent", 0, 49],
     ["GET", "probes:total"],
     ["HGETALL", "probes:days"],
+    ["HGETALL", "tools:totals"],
+    ["HGETALL", "tools:days"],
+    ["HGETALL", "agents:unknown-uas"],
     ...dayKeys.map((k) => ["HGETALL", `agents:day:${k}`] as Cmd),
   ]);
   if (!res) return null;
@@ -159,11 +193,27 @@ export async function readStats(days = 14): Promise<Stats | null> {
     total: (Number(res[3] ?? 0) || 0) + legacyProbes,
     byDay: hashToCounts(res[4]),
   };
+
+  const byTool = hashToCounts(res[5]);
+  const tooling = {
+    total: Object.values(byTool).reduce((a, b) => a + b, 0),
+    byTool,
+    byDay: hashToCounts(res[6]),
+  };
+
+  // Most frequent first, and capped — this is a list to read and act on, not a
+  // dump. Anything past the top few is a long tail of one-off scrapers.
+  const unknownUas = Object.fromEntries(
+    Object.entries(hashToCounts(res[7]))
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 25),
+  );
+
   const byDay: DayStat[] = dayKeys.map((day, i) => {
-    const agents = hashToCounts(res[5 + i]);
+    const agents = hashToCounts(res[8 + i]);
     const total = Object.values(agents).reduce((a, b) => a + b, 0);
     return { day, total, agents };
   });
 
-  return { totals, paths, recent, byDay, probes };
+  return { totals, paths, recent, byDay, probes, tooling, unknownUas };
 }

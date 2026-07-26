@@ -159,6 +159,10 @@ article hr { border: 0; border-top: 1px solid var(--rule); margin: 36px 0; }
 .feed .fa { color: var(--ink); white-space: nowrap; }
 .feed .fp { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .feed .ft { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* Two columns, not three: the unidentified-UA list has no agent name to put first.
+   minmax(0, 1fr) rather than 1fr so a long user-agent ellipsizes instead of pushing
+   the count off the row. */
+.feed.ua li { grid-template-columns: minmax(0, 1fr) max-content; }
 
 .resume-contact { color: var(--muted); font-size: 15px; margin: -20px 0 8px; }
 

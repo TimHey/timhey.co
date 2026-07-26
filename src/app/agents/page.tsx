@@ -53,6 +53,16 @@ export default async function AgentsPage() {
   const maxDay = Math.max(1, ...byDay.map((d) => d.total));
   const recent = stats?.recent.slice(0, 12) ?? [];
   const probes = stats?.probes.total ?? 0;
+  const tooling = stats?.tooling.total ?? 0;
+  const toolNames = stats
+    ? Object.entries(stats.tooling.byTool)
+        .sort((a, b) => b[1] - a[1])
+        .map(([t]) => t)
+        .slice(0, 4)
+    : [];
+  const unknownUas = stats
+    ? Object.entries(stats.unknownUas).slice(0, 8)
+    : [];
 
   return (
     <main>
@@ -122,6 +132,18 @@ export default async function AgentsPage() {
               </p>
             )}
 
+            {tooling > 0 && (
+              <p className="stat-note">
+                Also not counted: <b>{tooling.toLocaleString()}</b> requests from
+                plain HTTP clients
+                {toolNames.length > 0 && (
+                  <> &mdash; {toolNames.map((t) => <code key={t}>{t}</code>).reduce((a, b) => <>{a}, {b}</>)}</>
+                )}
+                . Some of that is me testing this site with <code>curl</code>.
+                It was landing in the agent column until I looked.
+              </p>
+            )}
+
             <h3>By agent</h3>
             <ul className="bars">
               {totals.map(([agent, n]) => (
@@ -181,6 +203,26 @@ export default async function AgentsPage() {
                       <span className="fa">{e.agent}</span>
                       <span className="fp">{e.path}</span>
                       <span className="ft">{feedTime(e)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {unknownUas.length > 0 && (
+              <>
+                <h3>Still unidentified</h3>
+                <p className="stat-note">
+                  User-agents that asked for a machine-readable file but
+                  don&rsquo;t match anything I recognize. This is the honest
+                  version of &ldquo;unknown&rdquo; &mdash; the list I work from
+                  when I add a new agent to the classifier.
+                </p>
+                <ul className="feed ua">
+                  {unknownUas.map(([ua, n]) => (
+                    <li key={ua}>
+                      <span className="fp" title={ua}>{ua}</span>
+                      <span className="ft">{n.toLocaleString()}</span>
                     </li>
                   ))}
                 </ul>

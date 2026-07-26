@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server";
-import { record, recordProbe } from "@/lib/agent-log";
+import { record, recordProbe, recordTooling } from "@/lib/agent-log";
 import { classify } from "@/lib/agent-filter";
 import { createCollector } from "@pickrate/collector";
 
@@ -68,6 +68,11 @@ export function middleware(req: NextRequest, event: NextFetchEvent) {
     // Scanners, not readers. Counted in aggregate so the volume is still
     // visible, but kept out of the agent numbers where it would be a lie.
     event.waitUntil(recordProbe());
+  } else if (hit.kind === "tooling") {
+    // curl, wget, a python script — including mine. Same treatment as probes:
+    // counted, not credited. Calling my own testing an agent read would make
+    // this page exactly the kind of number these posts complain about.
+    event.waitUntil(recordTooling(hit.tool));
   } else if (hit.kind === "agent") {
     // One structured line, greppable in Vercel logs even without a store.
     console.log(
@@ -80,16 +85,18 @@ export function middleware(req: NextRequest, event: NextFetchEvent) {
       }),
     );
     // Durable counters, if a store is configured. waitUntil keeps the write off
-    // the response path — the visitor (agent) never waits on it.
+    // the response path — the visitor (agent) never waits on it. The UA rides
+    // along so an unnamed agent can be identified later; record() drops it for
+    // everything it can already name.
     event.waitUntil(
-      record({ agent: hit.agent, surface: hit.surface, path: hit.path }),
+      record({ agent: hit.agent, surface: hit.surface, path: hit.path, ua }),
     );
   }
 
   // Report to Pickrate too. report() classifies internally (GET/HEAD agent hits only) and no-ops on
   // human/asset traffic, so this is cheap on every request and off the response path via waitUntil.
-  // Probes are withheld — they'd pollute the Pickrate data the same way.
-  if (hit.kind !== "probe") {
+  // Probes and tooling are withheld — they'd pollute the Pickrate data the same way.
+  if (hit.kind !== "probe" && hit.kind !== "tooling") {
     event.waitUntil(pickrate.report({ method: req.method, path, userAgent: ua }));
   }
 

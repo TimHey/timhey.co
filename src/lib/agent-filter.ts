@@ -40,6 +40,46 @@ export function identify(ua: string): string | null {
   return null;
 }
 
+// Generic HTTP clients. A request for llms.txt from curl is a person or a script
+// poking at the site — including my own testing — not an agent reading it. These
+// used to land in "unknown", which is the bucket that's supposed to mean "an
+// agent I can't name yet". Mixing the two makes both useless.
+const TOOLING_UAS: [string, string][] = [
+  ["curl/", "curl"],
+  ["wget", "wget"],
+  ["python-requests", "python-requests"],
+  ["python-urllib", "python-urllib"],
+  ["aiohttp", "aiohttp"],
+  ["httpx", "httpx"],
+  ["node-fetch", "node-fetch"],
+  ["undici", "undici"],
+  ["axios", "axios"],
+  ["got (", "got"],
+  ["go-http-client", "Go http"],
+  ["okhttp", "OkHttp"],
+  ["java/", "Java"],
+  ["libwww-perl", "libwww-perl"],
+  ["guzzlehttp", "Guzzle"],
+  ["postmanruntime", "Postman"],
+  ["insomnia", "Insomnia"],
+  ["httpie", "HTTPie"],
+  ["ruby", "Ruby"],
+  ["php/", "PHP"],
+];
+
+/**
+ * Name the HTTP client behind a request, when it's a generic one.
+ *
+ * An empty user-agent counts: nothing that reads the web for a living omits it,
+ * so it's a script too.
+ */
+export function identifyTooling(ua: string): string | null {
+  if (!ua.trim()) return "no user-agent";
+  const l = ua.toLowerCase();
+  for (const [sig, name] of TOOLING_UAS) if (l.includes(sig)) return name;
+  return null;
+}
+
 // Agents that lift a URL out of prose often bring the surrounding punctuation
 // with it: "/posts/slug.md)" or "/resume):". Same page, so count it as one.
 export function normalizePath(path: string): string {
@@ -168,10 +208,11 @@ export function isAgentSurface(path: string): boolean {
 
 export type Classification =
   | { kind: "probe"; path: string }
+  | { kind: "tooling"; path: string; tool: string }
   | { kind: "agent"; path: string; agent: string; surface: boolean }
   | { kind: "ignore" };
 
-/** Single decision point: probe, loggable agent hit, or nothing worth recording. */
+/** Single decision point: probe, script, loggable agent hit, or nothing worth recording. */
 export function classify(path: string, ua: string): Classification {
   const clean = normalizePath(path);
   if (isProbe(clean)) return { kind: "probe", path: clean };
@@ -179,6 +220,13 @@ export function classify(path: string, ua: string): Classification {
   const agent = identify(ua);
   const surface = isAgentSurface(clean);
   if (!agent && !surface) return { kind: "ignore" };
+
+  // A named agent is a named agent wherever it goes. Only unnamed traffic on an
+  // agent surface gets checked for tooling — that's the only place it lands.
+  if (!agent) {
+    const tool = identifyTooling(ua);
+    if (tool) return { kind: "tooling", path: clean, tool };
+  }
 
   return { kind: "agent", path: clean, agent: agent ?? "unknown", surface };
 }
