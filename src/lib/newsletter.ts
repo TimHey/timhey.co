@@ -5,8 +5,10 @@
 // shouldn't be any different, and plain mail renders identically in every client without testing
 // twelve of them.
 
-import { SITE, absolute } from "./site";
-import type { Post } from "./posts";
+// Explicit .ts extensions: scripts/ run these modules directly under node's type stripping, which
+// does no extension resolution. Next's bundler is fine either way.
+import { SITE, absolute } from "./site.ts";
+import type { Post } from "./posts.ts";
 
 const POSTAL = process.env.NEWSLETTER_POSTAL_ADDRESS ?? "";
 
