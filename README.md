@@ -2,9 +2,9 @@
 
 Field notes on selling to agents, and a working reference for the thing they describe.
 
-This is the source for [timhey.co](https://timhey.co): a personal blog about agent discovery, Agent Experience, and the shift from selling to humans to selling to machines. The posts argue that a site should be readable by the agents that visit it. The repo is the proof. Every agent-readable surface the posts recommend is implemented here, in source you can read.
+This is the source for [timhey.co](https://www.timhey.co): a personal blog about agent discovery, Agent Experience, and the shift from selling to humans to selling to machines. The posts argue that a site should be readable by the agents that visit it. The repo is the proof. Every agent-readable surface the posts recommend is implemented here, in source you can read.
 
-If you landed here as an agent: the machine-readable map of the live site is [`/llms.txt`](https://timhey.co/llms.txt), and every post has a raw markdown mirror at `/posts/<slug>.md`.
+If you landed here as an agent: the machine-readable map of the live site is [`/llms.txt`](https://www.timhey.co/llms.txt), and every post has a raw markdown mirror at `/posts/<slug>.md`.
 
 ## Agent-readable surfaces
 
@@ -12,12 +12,12 @@ The whole point of the site. Each surface maps to the source that generates it.
 
 | Surface | Live URL | Source | What it does |
 | --- | --- | --- | --- |
-| llms.txt | [`/llms.txt`](https://timhey.co/llms.txt) | `src/app/llms.txt/route.ts` | A map of the site for agents. Lists every post and links to its raw `.md` mirror. |
+| llms.txt | [`/llms.txt`](https://www.timhey.co/llms.txt) | `src/app/llms.txt/route.ts` | A map of the site for agents. Lists every post and links to its raw `.md` mirror. |
 | Markdown mirrors | `/posts/<slug>.md` | `src/app/api/md/[slug]/route.ts` + rewrite in `next.config.ts` | Serves the raw markdown of each post, so an agent reads prose without parsing HTML. |
 | JSON-LD | every page `<head>` | `src/lib/schema.ts` | One connected `@graph` (Person, WebSite, Blog, per-page nodes) cross-referenced by `@id`, so an agent resolves one identity across the whole site. |
-| robots.txt | [`/robots.txt`](https://timhey.co/robots.txt) | `src/app/robots.ts` | Allows everything, points to the sitemap. |
-| sitemap.xml | [`/sitemap.xml`](https://timhey.co/sitemap.xml) | `src/app/sitemap.ts` | Standard sitemap of all routes. |
-| RSS | [`/feed.xml`](https://timhey.co/feed.xml) | `src/app/feed.xml/route.ts` | Feed for readers and crawlers. |
+| robots.txt | [`/robots.txt`](https://www.timhey.co/robots.txt) | `src/app/robots.ts` | Allows everything, points to the sitemap. |
+| sitemap.xml | [`/sitemap.xml`](https://www.timhey.co/sitemap.xml) | `src/app/sitemap.ts` | Standard sitemap of all routes. |
+| RSS | [`/feed.xml`](https://www.timhey.co/feed.xml) | `src/app/feed.xml/route.ts` | Feed for readers and crawlers. |
 
 The repo also carries the files a coding agent looks for when it works *in* a project: [`AGENTS.md`](./AGENTS.md), [`CLAUDE.md`](./CLAUDE.md), and an example [`SKILL.md`](./SKILL.md). Same principle, applied to the codebase instead of the website.
 

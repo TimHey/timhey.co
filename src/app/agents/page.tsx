@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import { getAllPosts } from "@/lib/posts";
 import { readStats, type RecentHit } from "@/lib/agent-log";
 import { Subscribe } from "@/components/Subscribe";
+import { SITE_HOST } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "What agents read",
@@ -73,7 +74,7 @@ export default async function AgentsPage() {
       </p>
 
       <div className="manifest">
-        <p className="cmd">curl timhey.co/.well-known/</p>
+        <p className="cmd">curl {SITE_HOST}/.well-known/</p>
         <dl>
           {rows.map((r) => (
             <Fragment key={r.path}>

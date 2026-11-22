@@ -12,7 +12,7 @@
 // Explicit .ts extensions: scripts/check-ard.ts runs this module directly under node's type
 // stripping, which does no extension resolution. Next's bundler is fine either way.
 import { getAllPosts } from "./posts.ts";
-import { SITE, SITE_URL, absolute } from "./site.ts";
+import { SITE, SITE_HOST, SITE_URL, absolute } from "./site.ts";
 
 export const ARD_SPEC_VERSION = "1.0";
 
@@ -38,9 +38,9 @@ export interface ArdEntry {
   metadata?: Record<string, string | number | boolean | null>;
 }
 
-// urn:air:timhey.co:<namespace>:<name> — the publisher FQDN is the trust anchor (spec, normative).
+// urn:air:<host>:<namespace>:<name> — the publisher FQDN is the trust anchor (spec, normative).
 export function ardUrn(namespace: string, name: string): string {
-  return `urn:air:timhey.co:${namespace}:${name}`;
+  return `urn:air:${SITE_HOST}:${namespace}:${name}`;
 }
 
 // Same first-touch tag llms.txt uses. An agent that reads this catalog and hands a link to a person
@@ -56,10 +56,10 @@ function stamp(date: string): string {
 
 export const ARD_HOST = {
   displayName: SITE.author,
-  // did:web resolves to https://timhey.co/.well-known/did.json by convention. There is no DID
+  // did:web resolves to https://<host>/.well-known/did.json by convention. There is no DID
   // document here yet, so this is a stable identifier keyed to the domain, and the verifiable claim
   // is the https identity below.
-  identifier: "did:web:timhey.co",
+  identifier: `did:web:${SITE_HOST}`,
   documentationUrl: absolute("/llms.txt"),
   trustManifest: {
     identity: SITE_URL,

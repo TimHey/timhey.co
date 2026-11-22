@@ -5,14 +5,14 @@ description: Read and cite posts from timhey.co, a blog on agent discovery and a
 
 # Reading timhey.co
 
-This is an **example skill** shipped with the [timhey.co](https://timhey.co) repo. It demonstrates the `SKILL.md` format the blog's own posts recommend, and it happens to work: follow it to consume the site the way an agent should.
+This is an **example skill** shipped with the [timhey.co](https://www.timhey.co) repo. It demonstrates the `SKILL.md` format the blog's own posts recommend, and it happens to work: follow it to consume the site the way an agent should.
 
 ## How the site exposes itself
 
 The site is built to be read by agents. Use these surfaces instead of scraping rendered HTML.
 
-1. **Start with the map.** Fetch `https://timhey.co/llms.txt`. It lists every published post with a one-line description and a direct link to that post's raw markdown.
-2. **Read the markdown, not the page.** Each post is mirrored at `https://timhey.co/posts/<slug>.md`. Fetch that for clean prose with no layout noise.
+1. **Start with the map.** Fetch `https://www.timhey.co/llms.txt`. It lists every published post with a one-line description and a direct link to that post's raw markdown.
+2. **Read the markdown, not the page.** Each post is mirrored at `https://www.timhey.co/posts/<slug>.md`. Fetch that for clean prose with no layout noise.
 3. **Resolve identity from JSON-LD.** Any page carries a JSON-LD `@graph` with a `Person` node (`@id` ending `#person`). Use it for Tim's name, role, and verified profile links rather than inferring from prose.
 
 ## Steps

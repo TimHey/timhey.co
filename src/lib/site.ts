@@ -1,5 +1,8 @@
 // One place to change the domain and identity. Everything reads from here.
-export const SITE_URL = "https://timhey.co";
+// www is the canonical host: Vercel 308s the apex to it, so canonicals, sitemap <loc>s and feed
+// links must say www or every declared canonical is a redirect.
+export const SITE_URL = "https://www.timhey.co";
+export const SITE_HOST = new URL(SITE_URL).host;
 
 export const SITE = {
   name: "Tim Hey",
