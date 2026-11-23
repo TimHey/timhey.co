@@ -34,6 +34,8 @@ export default async function AgentsPage() {
   const rows = [
     { path: "/llms.txt", note: "site map for models" },
     { path: "/.well-known/ai-catalog.json", note: "ARD capability catalog" },
+    { path: "/openapi.json", note: "content API spec (OpenAPI 3.1)" },
+    { path: "/api/posts?include=markdown", note: "every post as JSON, one call" },
     { path: "/feed.xml", note: "writing feed (RSS)" },
     { path: "/robots.txt", note: "crawl + AI-bot rules" },
     { path: "/sitemap.xml", note: "every URL, dated" },

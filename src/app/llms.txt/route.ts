@@ -25,6 +25,8 @@ export function GET() {
   lines.push("");
   lines.push("Every page here is available as raw Markdown — append `.md` to any URL, or send `Accept: text/markdown`.");
   lines.push("");
+  lines.push(`The whole blog as JSON in one call: ${absolute("/api/posts?include=markdown")} (OpenAPI spec: ${absolute("/openapi.json")}).`);
+  lines.push("");
   lines.push("## Writing");
   lines.push("");
   for (const p of posts) {
@@ -36,6 +38,7 @@ export function GET() {
   lines.push(`- [Resume](${via("/resume")}): career history, roles, and competencies.`);
   lines.push(`- [What agents read](${via("/agents")}): a human-readable index of every machine-readable file this site serves.`);
   lines.push(`- [ai-catalog.json](${via("/.well-known/ai-catalog.json")}): ARD capability catalog for this site.`);
+  lines.push(`- [Content API](${via("/openapi.json")}): OpenAPI 3.1 spec. List posts, filter by tag or date, fetch any post as JSON or Markdown. No auth.`);
   lines.push("");
 
   return new Response(lines.join("\n"), {

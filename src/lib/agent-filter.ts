@@ -202,6 +202,9 @@ export function isAgentSurface(path: string): boolean {
     path === "/feed.xml" ||
     path.endsWith(".md") ||
     path.startsWith("/api/md/") ||
+    path === "/openapi.json" ||
+    path === "/api/posts" ||
+    path.startsWith("/api/posts/") ||
     path.startsWith("/.well-known/")
   );
 }

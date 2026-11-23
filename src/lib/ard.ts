@@ -138,6 +138,22 @@ export function catalogEntries(): ArdEntry[] {
       metadata: { humanReadable: absolute("/agents") },
     },
     {
+      identifier: ardUrn("api", "content"),
+      displayName: "Content API (OpenAPI 3.1)",
+      type: "application/openapi+json",
+      url: absolute("/openapi.json"),
+      description:
+        "Read-only, no-auth JSON API for every post on this blog. GET /api/posts?include=markdown returns the whole blog with full Markdown bodies in one call; GET /api/posts/{slug} returns one post.",
+      tags: ["openapi", "content api", "agent discovery", "open data"],
+      capabilities: ["list-posts", "get-post"],
+      representativeQueries: [
+        "get all of Tim Hey's posts as JSON",
+        "API for timhey.co content",
+        "fetch the full text of every post on timhey.co",
+      ],
+      ...(latest ? { updatedAt: stamp(latest) } : {}),
+    },
+    {
       identifier: ardUrn("profile", "resume"),
       displayName: "Tim Hey — resume",
       type: TYPE_HTML,

@@ -83,6 +83,12 @@ export default function RootLayout({
           href="/llms.txt"
           title="llms.txt"
         />
+        <link
+          rel="service-desc"
+          type="application/openapi+json"
+          href="/openapi.json"
+          title="Content API (OpenAPI)"
+        />
       </head>
       <body>
         <div className="wrap">
@@ -101,7 +107,8 @@ export default function RootLayout({
           <footer className="site">
             <p>
               {SITE.role}. Field notes, not theory.{" "}
-              <a href="/llms.txt">llms.txt</a> · <a href="/feed.xml">RSS</a>
+              <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">API</a> ·{" "}
+              <a href="/feed.xml">RSS</a>
             </p>
             <Social />
           </footer>
