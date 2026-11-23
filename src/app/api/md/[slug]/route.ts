@@ -1,4 +1,5 @@
 import { getAllSlugs, getPost } from "@/lib/posts";
+import { absolute } from "@/lib/site";
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
@@ -19,7 +20,9 @@ export async function GET(
   if (!post) {
     return new Response("Not found\n", { status: 404 });
   }
-  const body = `# ${post.title}\n\n> ${post.description}\n\n${post.markdown}\n`;
+  // Dated so a cached copy is visibly a copy of a specific version.
+  const meta = `Published: ${post.date}  \nCanonical: ${absolute(`/posts/${slug}`)}`;
+  const body = `# ${post.title}\n\n${meta}\n\n> ${post.description}\n\n${post.markdown}\n`;
   return new Response(body, {
     headers: {
       "content-type": "text/markdown; charset=utf-8",
